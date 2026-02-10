@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Parliament</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- ===== サイドバー（AI一覧 + コントロール） ===== -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="app-logo">🏛️</div>
+                <h1 class="app-title">Parliament</h1>
+            </div>
+
+            <!-- AIメンバー一覧 -->
+            <div class="sidebar-section">
+                <h2 class="section-title">AI メンバー</h2>
+                <ul class="ai-member-list" id="aiMemberList">
+                    {% for ai_id, profile in ai_profiles.items() %}
+                    <li class="ai-member" id="member-{{ ai_id }}" data-ai-id="{{ ai_id }}">
+                        <div class="member-avatar" style="background-color: {{ profile.avatar_color }}">
+                            {{ profile.icon }}
+                        </div>
+                        <div class="member-info">
+                            <span class="member-name">{{ profile.name }}</span>
+                            <span class="member-role">{{ profile.role }}</span>
+                        </div>
+                        <div class="member-status">
+                            <span class="status-dot offline" id="status-{{ ai_id }}"></span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- コントロールパネル -->
+            <div class="sidebar-section control-panel">
+                <h2 class="section-title">コントロール</h2>
+                <button class="btn btn-activate" id="btnActivateAll" onclick="activateAllAI()">
+                    ⚡ 全AI起動
+                </button>
+                <button class="btn btn-stop" id="btnStop" onclick="stopDiscussion()" disabled>
+                    ⏹ 終了・破棄
+                </button>
+            </div>
+        </aside>
+
+        <!-- ===== メインチャットエリア ===== -->
+        <main class="chat-main">
+
+            <!-- チャットヘッダー -->
+            <header class="chat-header">
+                <div class="chat-header-left">
+                    <h2 class="chat-title">🏛️ 仮想通貨戦略会議</h2>
+                    <span class="chat-subtitle" id="chatSubtitle">AIを起動してください</span>
+                </div>
+                <div class="chat-header-right">
+                    <span class="online-count" id="onlineCount">0/4 オンライン</span>
+                </div>
+            </header>
+
+            <!-- メッセージエリア -->
+            <div class="chat-messages" id="chatMessages">
+                <!-- 初期メッセージ -->
+                <div class="message system-message">
+                    <div class="message-content">
+                        <p>🏛️ <strong>Project Parliament</strong> へようこそ</p>
+                        <p>左パネルから全AIを起動し、チャート画像をアップロードして議論を開始してください。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 入力エリア（チャート画像アップロード + 議論開始） -->
+            <div class="chat-input-area" id="chatInputArea">
+                <!-- 議論開始前：画像アップロード -->
+                <div class="upload-panel" id="uploadPanel">
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="chartInput" multiple accept="image/*" 
+                               onchange="handleFileSelect(event)" style="display:none">
+                        <div class="upload-placeholder" onclick="document.getElementById('chartInput').click()">
+                            <span class="upload-icon">📊</span>
+                            <span>チャート画像をドラッグ＆ドロップ、またはクリックして選択</span>
+                            <span class="upload-hint">最大5枚（PNG, JPG, GIF, WebP）</span>
+                        </div>
+                    </div>
+                    <!-- プレビューエリア -->
+                    <div class="image-preview-row" id="imagePreviewRow"></div>
+                    <button class="btn btn-start" id="btnStartDiscussion" 
+                            onclick="startDiscussion()" disabled>
+                        🚀 議論を開始する
+                    </button>
+                </div>
+
+                <!-- 議論中：稟議書ダウンロード -->
+                <div class="report-panel" id="reportPanel" style="display:none">
+                    <button class="btn btn-download" id="btnDownload" 
+                            onclick="downloadReport()" disabled>
+                        📥 稟議書をダウンロード
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- ===== 稟議書パネル（右サイド） ===== -->
+        <aside class="proposal-panel" id="proposalPanel">
+            <div class="proposal-header">
+                <h2>📋 稟議書</h2>
+                <span class="proposal-status" id="proposalStatus">未提出</span>
+            </div>
+            <div class="proposal-content" id="proposalContent">
+                <p class="placeholder-text">議論が進行すると、AIから稟議書が提出されます。</p>
+            </div>
+            <div class="vote-display" id="voteDisplay">
+                <!-- 投票状況がここに表示される -->
+            </div>
+        </aside>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

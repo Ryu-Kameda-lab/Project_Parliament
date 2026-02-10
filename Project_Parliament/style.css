@@ -1,0 +1,650 @@
+/* ============================================================
+   Project Parliament - Microsoft Teams風 チャットUI
+   ============================================================ */
+
+/* --- リセット・ベース --- */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Teams風カラーパレット */
+    --bg-primary: #1b1b2f;
+    --bg-secondary: #162447;
+    --bg-surface: #1f3060;
+    --bg-surface-hover: #254080;
+    --bg-chat: #0f1a30;
+    --text-primary: #e8eaf0;
+    --text-secondary: #8b95a8;
+    --text-muted: #5a6478;
+    --accent-blue: #5b6abf;
+    --accent-green: #2ecc71;
+    --accent-red: #e74c3c;
+    --accent-orange: #f39c12;
+    --accent-purple: #6c5ce7;
+    --border-color: #2a3a5c;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --radius: 8px;
+    --radius-lg: 12px;
+
+    /* フォント */
+    --font-main: "Segoe UI", "Noto Sans JP", -apple-system, sans-serif;
+    --font-mono: "Cascadia Code", "Fira Code", monospace;
+}
+
+body {
+    font-family: var(--font-main);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* --- レイアウト：3カラム構成 --- */
+.app-container {
+    display: grid;
+    grid-template-columns: 260px 1fr 320px;
+    height: 100vh;
+}
+
+/* ============================================================
+   サイドバー（左パネル）
+   ============================================================ */
+.sidebar {
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.app-logo {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.app-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+}
+
+.sidebar-section {
+    padding: 16px;
+}
+
+.section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+/* AI メンバーリスト */
+.ai-member-list {
+    list-style: none;
+}
+
+.ai-member {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.ai-member:hover {
+    background: var(--bg-surface-hover);
+}
+
+.member-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.member-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.member-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.member-role {
+    font-size: 10px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.member-status {
+    flex-shrink: 0;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.status-dot.offline {
+    background: var(--text-muted);
+}
+
+.status-dot.online {
+    background: var(--accent-green);
+    box-shadow: 0 0 6px rgba(46, 204, 113, 0.5);
+}
+
+.status-dot.connecting {
+    background: var(--accent-orange);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* コントロールパネル */
+.control-panel {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ボタン共通 */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-main);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-activate {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    color: white;
+}
+
+.btn-activate:hover:not(:disabled) {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+}
+
+.btn-stop {
+    background: var(--bg-surface);
+    color: var(--accent-red);
+    border: 1px solid var(--accent-red);
+}
+
+.btn-stop:hover:not(:disabled) {
+    background: rgba(231, 76, 60, 0.15);
+}
+
+.btn-start {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    padding: 14px 24px;
+    font-size: 15px;
+    border-radius: var(--radius-lg);
+}
+
+.btn-start:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.btn-download {
+    background: linear-gradient(135deg, var(--accent-blue), #3b82f6);
+    color: white;
+    padding: 14px 24px;
+    font-size: 15px;
+    border-radius: var(--radius-lg);
+}
+
+.btn-download:hover:not(:disabled) {
+    filter: brightness(1.15);
+}
+
+/* ============================================================
+   メインチャットエリア（中央）
+   ============================================================ */
+.chat-main {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-chat);
+    overflow: hidden;
+}
+
+/* チャットヘッダー */
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.chat-title {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.chat-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.online-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+/* メッセージエリア */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+/* メッセージ共通 */
+.message {
+    display: flex;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    max-width: 85%;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* システムメッセージ */
+.system-message {
+    align-self: center;
+    max-width: 600px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.system-message .message-content p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* AIメッセージ */
+.ai-message {
+    align-self: flex-start;
+}
+
+.ai-message .msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.ai-message .msg-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ai-message .msg-sender {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.ai-message .msg-text {
+    background: var(--bg-surface);
+    padding: 10px 14px;
+    border-radius: 2px var(--radius-lg) var(--radius-lg) var(--radius-lg);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-primary);
+}
+
+.ai-message .msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* ユーザーメッセージ */
+.user-message {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.user-message .msg-text {
+    background: var(--accent-blue);
+    color: white;
+    padding: 10px 14px;
+    border-radius: var(--radius-lg) 2px var(--radius-lg) var(--radius-lg);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* 稟議書メッセージ（特別スタイル） */
+.proposal-message .msg-text {
+    background: linear-gradient(135deg, #1a3a5c, #1f4068);
+    border: 1px solid var(--accent-blue);
+    border-left: 4px solid var(--accent-orange);
+}
+
+.proposal-tag {
+    display: inline-block;
+    background: var(--accent-orange);
+    color: #1b1b2f;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+/* 投票バッジ */
+.vote-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.vote-badge.support {
+    background: rgba(46, 204, 113, 0.2);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.vote-badge.oppose {
+    background: rgba(231, 76, 60, 0.2);
+    color: var(--accent-red);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* 入力エリア */
+.chat-input-area {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+}
+
+/* アップロードゾーン */
+.upload-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: var(--accent-blue);
+    background: rgba(91, 106, 191, 0.1);
+}
+
+.upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.upload-icon {
+    font-size: 32px;
+}
+
+.upload-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* 画像プレビュー行 */
+.image-preview-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.preview-thumb {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+}
+
+.preview-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    background: rgba(0,0,0,0.7);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================================
+   稟議書パネル（右パネル）
+   ============================================================ */
+.proposal-panel {
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.proposal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.proposal-header h2 {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.proposal-status {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+}
+
+.proposal-status.voting {
+    background: rgba(243, 156, 18, 0.2);
+    color: var(--accent-orange);
+}
+
+.proposal-status.approved {
+    background: rgba(46, 204, 113, 0.2);
+    color: var(--accent-green);
+}
+
+.proposal-content {
+    padding: 20px;
+    flex: 1;
+}
+
+.placeholder-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 40px;
+}
+
+/* 投票表示 */
+.vote-display {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.vote-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+}
+
+.vote-item .voter-name {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* タイピングインジケータ */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 3px;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+}
+
+/* ============================================================
+   レスポンシブ対応
+   ============================================================ */
+@media (max-width: 1100px) {
+    .app-container {
+        grid-template-columns: 220px 1fr;
+    }
+    .proposal-panel {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        display: none;
+    }
+}
