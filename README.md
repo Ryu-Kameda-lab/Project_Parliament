@@ -1,0 +1,2 @@
+# Project_Parliament
+複数のAIサービスを１つのWEB上で会議させるサービス
