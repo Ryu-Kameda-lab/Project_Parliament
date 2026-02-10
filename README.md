@@ -1,4 +1,4 @@
-# Project_Parliament
+
 # 🏛️ Project Parliament
 
 複数のAIサービスを1つのWeb上で連結し、仮想通貨取引戦略を議論させるサービス。
